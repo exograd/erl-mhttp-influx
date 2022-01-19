@@ -14,7 +14,7 @@
 
 -module(mhttp_influx).
 
--export([client_request_hook/4, server_request_hook/4]).
+-export([client_request_hook/4, server_request_hook/5]).
 
 -spec client_request_hook(mhttp:request(), mhttp:response(), integer(),
                           mhttp:pool_id()) ->
@@ -37,15 +37,16 @@ client_request_hook(Request = #{method := Method},
   ok.
 
 -spec server_request_hook(mhttp:request(), mhttp:response(), integer(),
-                          mhttp:pool_id()) ->
+                          binary(), mhttp:pool_id()) ->
         ok.
 server_request_hook(Request = #{method := Method},
                     Response = #{status := Status},
-                    RequestTime, ServerId) ->
+                    RequestTime, RouteId, ServerId) ->
   ReqBody = mhttp_request:body(Request),
   ResBody = mhttp_response:body(Response),
   Tags =
     #{server => ServerId,
+      route => RouteId,
       status => integer_to_binary(Status)},
   Fields =
     #{method => Method,
