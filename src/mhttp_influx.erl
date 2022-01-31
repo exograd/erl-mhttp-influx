@@ -25,12 +25,13 @@ client_request_hook(Request = #{method := Method},
   ReqBody = mhttp_request:body(Request),
   ResBody = mhttp_response:body(Response),
   Tags =
-    #{pool => PoolId},
+    #{pool => PoolId,
+      status => status_key(Status)},
   Fields =
     #{method => Method,
       req_body_size => iolist_size(ReqBody),
       res_body_size => iolist_size(ResBody),
-      status => Status,
+      status_code => Status,
       req_time => RequestTime},
   Point = influx:point(mhttp_outgoing_requests, Fields, Tags),
   influx:enqueue_point(default, Point),
@@ -47,12 +48,25 @@ server_request_hook(Request = #{method := Method},
   Tags =
     #{server => ServerId,
       route => RouteId,
-      status => integer_to_binary(Status)},
+      status => status_key(Status)},
   Fields =
     #{method => Method,
       req_body_size => iolist_size(ReqBody),
       res_body_size => iolist_size(ResBody),
+      status_code => Status,
       req_time => RequestTime},
   Point = influx:point(mhttp_incoming_requests, Fields, Tags),
   influx:enqueue_point(default, Point),
   ok.
+
+-spec status_key(integer()) -> binary().
+status_key(Code) when Code >= 200, Code < 300 ->
+  <<"2xx">>;
+status_key(Code) when Code >= 300, Code < 400 ->
+  <<"3xx">>;
+status_key(Code) when Code >= 400, Code < 500 ->
+  <<"4xx">>;
+status_key(Code) when Code >= 500, Code < 600 ->
+  <<"4xx">>;
+status_key(_) ->
+  <<"other">>.
