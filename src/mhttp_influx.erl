@@ -67,6 +67,6 @@ status_key(Code) when Code >= 300, Code < 400 ->
 status_key(Code) when Code >= 400, Code < 500 ->
   <<"4xx">>;
 status_key(Code) when Code >= 500, Code < 600 ->
-  <<"4xx">>;
+  <<"5xx">>;
 status_key(_) ->
   <<"other">>.
